@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>411寝室主页</title>
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    
+    <style>
+        html {
+            scroll-behavior: smooth; 
+        }
+
+        body {
+            background-image: url('background.png'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            color: #333333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page-wrapper {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 30px 20px;
+            border-radius: 15px;
+            width: 200px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333333;
+            text-decoration: none;
+            padding: 15px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #e0e0e0;
+            color: #000000;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.85); 
+            padding: 40px 50px;
+            border-radius: 15px; 
+            flex-grow: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 50vh; 
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #666666;
+            font-size: 2em;
+            margin: 0 0 10px 0;
+            font-weight: normal;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.3s;
+        }
+
+        .header a:hover {
+            color: #333333;
+            text-decoration: underline;
+        }
+
+        .header .date {
+            color: #999999;
+            font-size: 1em;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .content p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .leader-list {
+            font-size: 1.2em;
+            line-height: 2;
+        }
+        .leader-list .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .scroll-animate.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 80%;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.show .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box h2 {
+            color: #333333;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+
+        .modal-box p {
+            color: #666666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background-color: #666666;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn:hover {
+            background-color: #333333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        
+        <div class="sidebar">
+            <a href="index.html">主 页</a>
+            <a href="story.html">这是怎么来的</a>
+            <a href="board.html">写点什么吧</a>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <a href="https://www.ccw.site/detail/6af8655ae45b284a7a2a5c97?inviteCode=MWbwkgkrnuS5N0t3" title="概念版">411寝室主页</a>
+                </h1>
+                <div class="date">发表于 2026-11-14</div>
+            </div>
+
+            <div class="section scroll-animate">
+                <div class="section-title">简介:</div>
+                <div class="content">
+                    <p>411寝室坐落于绵阳市高新区火炬中学男生寝室,是学生温馨的"第二个家"</p>
+                    <p>寝室内十二人人一间,整洁明亮.空调,热水,储物柜一应俱全;室友互助,宿管贴心,作息规律。</p>
+                    <p>在这里,孩子们学会独立整理内务,也收获熄灯前那段叽叽喳喳的友谊.三年同寝,是一起长大的缘分</p>
+                </div>
+            </div>
+
+            <div class="section scroll-animate">
+                <div class="section-title">领导人:</div>
+                <div class="leader-list">
+                    <div>
+                        <span class="label">室长:</span>
+                        彭皮晏 青蛙
+                    </div>
+                    <div>
+                        <span class="label">普通人:</span>
+                        曾一般 杨填文 汪汪 杨博俊等十人
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="welcomeModal">
+        <div class="modal-box">
+            <h2>欢迎来到411社区!</h2>
+            <p>代码由蒋*皓完成</p>
+            <button class="modal-btn" onclick="closeModal()">我知道了</button>
+        </div>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.scroll-animate').forEach((el) => {
+            observer.observe(el);
+        });
+
+        window.onload = function() {
+            const modal = document.getElementById('welcomeModal');
+            const hasVisited = localStorage.getItem('hasVisited411');
+
+            if (!hasVisited) {
+                setTimeout(() => {
+                    modal.classList.add('show');
+                }, 500);
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.classList.remove('show');
+            localStorage.setItem('hasVisited411', 'true');
+        }
+    </script>
+</body>
+</html>

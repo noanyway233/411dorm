@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>写点什么吧 - 411寝室</title>
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    
+    <style>
+        html {
+            scroll-behavior: smooth; 
+        }
+
+        body {
+            background-image: url('background.png'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            color: #333333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page-wrapper {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 30px 20px;
+            border-radius: 15px;
+            width: 200px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333333;
+            text-decoration: none;
+            padding: 15px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #e0e0e0;
+            color: #000000;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.85); 
+            padding: 40px 50px;
+            border-radius: 15px; 
+            flex-grow: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 50vh; 
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #666666;
+            font-size: 2em;
+            margin: 0 0 10px 0;
+            font-weight: normal;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.3s;
+        }
+
+        .header a:hover {
+            color: #333333;
+            text-decoration: underline;
+        }
+
+        .header .date {
+            color: #999999;
+            font-size: 1em;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .message-box {
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            font-size: 1.1em;
+            font-family: inherit;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        button {
+            background-color: #666666;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #333333;
+        }
+
+        .message-list {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .message-item {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #666666;
+        }
+
+        .message-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .message-author {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .message-content {
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        
+        <div class="sidebar">
+            <a href="index.html">主 页</a>
+            <a href="story.html">这是怎么来的</a>
+            <a href="board.html">写点什么吧</a>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1>写点什么吧</h1>
+                <div class="date">匿名留言板</div>
+            </div>
+
+            <div class="message-box">
+                <textarea id="messageInput" placeholder="在这里写下你想说的话..."></textarea>
+                <button onclick="postMessage()">发表</button>
+            </div>
+
+            <div class="message-list" id="messageList">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function loadMessages() {
+            const list = document.getElementById('messageList');
+            list.innerHTML = '';
+            const messages = JSON.parse(localStorage.getItem('dormMessages')) || [];
+
+            if (messages.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#999;">暂时还没有留言，快来抢沙发吧！</p>';
+                return;
+            }
+
+            messages.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'message-item';
+                item.innerHTML = `
+                    <div class="message-info">
+                        <span class="message-author">匿名用户</span>
+                        <span>${msg.time}</span>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function postMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (content === '') {
+                alert('写点什么再发表吧！');
+                return;
+            }
+
+            const now = new Date();
+            const timeString = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0');
+
+            const messages = JSON.parse(localStorage.getItem('dormMessages')) || [];
+            messages.unshift({
+                content: content,
+                time: timeString
+            });
+
+            localStorage.setItem('dormMessages', JSON.stringify(messages));
+            input.value = '';
+            loadMessages();
+        }
+
+        window.onload = loadMessages;
+    </script>
+</body>
+</html>
