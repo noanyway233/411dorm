@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>写点什么吧 - 411寝室</title>
     <link rel="icon" href="icon.ico" type="image/x-icon">
-    
     <style>
-        html {
-            scroll-behavior: smooth; 
-        }
-
+        html { scroll-behavior: smooth; }
         body {
-            background-image: url('background.png'); 
+            background-image: url('background.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -23,14 +19,7 @@
             display: flex;
             justify-content: center;
         }
-
-        .page-wrapper {
-            display: flex;
-            max-width: 1100px;
-            width: 100%;
-            gap: 20px;
-        }
-
+        .page-wrapper { display: flex; max-width: 1100px; width: 100%; gap: 20px; }
         .sidebar {
             background-color: rgba(255, 255, 255, 0.85);
             padding: 30px 20px;
@@ -42,7 +31,6 @@
             position: sticky;
             top: 40px;
         }
-
         .sidebar a {
             display: block;
             font-size: 1.2em;
@@ -54,61 +42,20 @@
             margin-bottom: 10px;
             transition: background-color 0.3s, color 0.3s;
         }
-
-        .sidebar a:hover {
-            background-color: #e0e0e0;
-            color: #000000;
-        }
-
+        .sidebar a:hover { background-color: #e0e0e0; color: #000000; }
         .container {
-            background-color: rgba(255, 255, 255, 0.85); 
+            background-color: rgba(255, 255, 255, 0.85);
             padding: 40px 50px;
-            border-radius: 15px; 
+            border-radius: 15px;
             flex-grow: 1;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 50vh; 
+            margin-bottom: 50vh;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            color: #666666;
-            font-size: 2em;
-            margin: 0 0 10px 0;
-            font-weight: normal;
-        }
-
-        .header a {
-            text-decoration: none;
-            color: inherit;
-            transition: color 0.3s;
-        }
-
-        .header a:hover {
-            color: #333333;
-            text-decoration: underline;
-        }
-
-        .header .date {
-            color: #999999;
-            font-size: 1em;
-        }
-
-        .section-title {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-top: 30px;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
-
-        .message-box {
-            margin-bottom: 30px;
-        }
-
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #666666; font-size: 2em; margin: 0 0 10px 0; font-weight: normal; }
+        .header .date { color: #999999; font-size: 1em; }
+        .section-title { font-size: 2.5em; font-weight: bold; margin-top: 30px; margin-bottom: 20px; letter-spacing: 2px; }
+        .message-box { margin-bottom: 30px; }
         textarea {
             width: 100%;
             height: 120px;
@@ -122,7 +69,6 @@
             margin-bottom: 15px;
             background-color: rgba(255, 255, 255, 0.9);
         }
-
         button {
             background-color: #666666;
             color: white;
@@ -133,17 +79,9 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
-        button:hover {
-            background-color: #333333;
-        }
-
-        .message-list {
-            margin-top: 30px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-        }
-
+        button:hover { background-color: #333333; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .message-list { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
         .message-item {
             background: rgba(255, 255, 255, 0.6);
             padding: 15px;
@@ -151,30 +89,15 @@
             margin-bottom: 15px;
             border-left: 4px solid #666666;
         }
-
-        .message-info {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .message-author {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .message-content {
-            font-size: 1.1em;
-            line-height: 1.5;
-        }
+        .message-info { font-size: 0.9em; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .message-author { font-weight: bold; color: #333; }
+        .message-content { font-size: 1.1em; line-height: 1.5; }
+        #status { font-size: 0.9em; color: #999; margin-left: 15px; }
     </style>
 </head>
 <body>
 
     <div class="page-wrapper">
-        
         <div class="sidebar">
             <a href="index.html">主 页</a>
             <a href="story.html">这是怎么来的</a>
@@ -189,65 +112,104 @@
 
             <div class="message-box">
                 <textarea id="messageInput" placeholder="在这里写下你想说的话..."></textarea>
-                <button onclick="postMessage()">发表</button>
+                <div>
+                    <button id="submitBtn" onclick="postMessage()">发表</button>
+                    <span id="status"></span>
+                </div>
             </div>
 
             <div class="message-list" id="messageList">
+                <p style="text-align:center; color:#999;">加载留言中...</p>
             </div>
         </div>
-
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        function loadMessages() {
-            const list = document.getElementById('messageList');
-            list.innerHTML = '';
-            const messages = JSON.parse(localStorage.getItem('dormMessages')) || [];
+        const SUPABASE_URL =' https://hihtkjadjgtljjmdkouw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaHRramFkamd0bGpqbWRrb3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2OTAxOTAsImV4cCI6MjExMDI2NjE5MH0.WqBgiY2aDQqmKEknRaKSsPFu0kk27-KmmEBkX_91Ec0';
 
-            if (messages.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#999;">暂时还没有留言，快来抢沙发吧！</p>';
-                return;
-            }
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            messages.forEach(msg => {
-                const item = document.createElement('div');
-                item.className = 'message-item';
-                item.innerHTML = `
-                    <div class="message-info">
-                        <span class="message-author">匿名用户</span>
-                        <span>${msg.time}</span>
-                    </div>
-                    <div class="message-content">${msg.content}</div>
-                `;
-                list.appendChild(item);
+        const messageList = document.getElementById('messageList');
+        const messageInput = document.getElementById('messageInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusSpan = document.getElementById('status');
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>"']/g, function(match) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return map[match];
             });
         }
 
-        function postMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
+        async function loadMessages() {
+            messageList.innerHTML = '<p style="text-align:center; color:#999;">加载留言中...</p>';
+            const { data, error } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: false });
 
+            if (error) {
+                console.error('加载留言失败:', error);
+                messageList.innerHTML = '<p style="text-align:center; color:red;">加载失败，请稍后刷新重试。</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                messageList.innerHTML = '<p style="text-align:center; color:#999;">暂时还没有留言，快来抢沙发吧！</p>';
+                return;
+            }
+
+            messageList.innerHTML = '';
+            data.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'message-item';
+                const date = new Date(msg.created_at).toLocaleString('zh-CN');
+                item.innerHTML = `
+                    <div class="message-info">
+                        <span class="message-author">${escapeHTML(msg.author)}</span>
+                        <span>${date}</span>
+                    </div>
+                    <div class="message-content">${escapeHTML(msg.content)}</div>
+                `;
+                messageList.appendChild(item);
+            });
+        }
+
+        async function postMessage() {
+            const content = messageInput.value.trim();
             if (content === '') {
                 alert('写点什么再发表吧！');
                 return;
             }
 
-            const now = new Date();
-            const timeString = now.getFullYear() + '-' + 
-                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                               String(now.getDate()).padStart(2, '0') + ' ' + 
-                               String(now.getHours()).padStart(2, '0') + ':' + 
-                               String(now.getMinutes()).padStart(2, '0');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '发表中...';
+            statusSpan.textContent = '';
 
-            const messages = JSON.parse(localStorage.getItem('dormMessages')) || [];
-            messages.unshift({
-                content: content,
-                time: timeString
-            });
+            const { error } = await supabaseClient
+                .from('messages')
+                .insert([{ content: content, author: '匿名用户' }]);
 
-            localStorage.setItem('dormMessages', JSON.stringify(messages));
-            input.value = '';
-            loadMessages();
+            if (error) {
+                console.error('发表失败:', error);
+                statusSpan.textContent = '发表失败，请重试。';
+                statusSpan.style.color = 'red';
+            } else {
+                messageInput.value = '';
+                statusSpan.textContent = '发表成功！';
+                statusSpan.style.color = 'green';
+                await loadMessages();
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '发表';
         }
 
         window.onload = loadMessages;
