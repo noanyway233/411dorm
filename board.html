@@ -54,11 +54,23 @@
         .header { text-align: center; margin-bottom: 30px; }
         .header h1 { color: #666666; font-size: 2em; margin: 0 0 10px 0; font-weight: normal; }
         .header .date { color: #999999; font-size: 1em; }
-        .section-title { font-size: 2.5em; font-weight: bold; margin-top: 30px; margin-bottom: 20px; letter-spacing: 2px; }
         .message-box { margin-bottom: 30px; }
+        
+        .reply-hint {
+            display: none;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         textarea {
             width: 100%;
-            height: 120px;
+            height: 80px;
             padding: 15px;
             font-size: 1.1em;
             font-family: inherit;
@@ -66,14 +78,22 @@
             border-radius: 8px;
             box-sizing: border-box;
             resize: vertical;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             background-color: rgba(255, 255, 255, 0.9);
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         button {
             background-color: #666666;
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 8px 25px;
             font-size: 1.1em;
             border-radius: 8px;
             cursor: pointer;
@@ -81,18 +101,64 @@
         }
         button:hover { background-color: #333333; }
         button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        .message-list { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+        
+        .message-list { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px; }
         .message-item {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.7);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
             border-left: 4px solid #666666;
         }
-        .message-info { font-size: 0.9em; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .message-info { 
+            font-size: 0.9em; color: #666; margin-bottom: 8px; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
         .message-author { font-weight: bold; color: #333; }
-        .message-content { font-size: 1.1em; line-height: 1.5; }
-        #status { font-size: 0.9em; color: #999; margin-left: 15px; }
+        .action-btns { display: flex; gap: 8px; }
+        .action-btns button {
+            padding: 4px 8px; font-size: 0.85em; background: none; color: #888; border: 1px solid #ccc;
+        }
+        .action-btns button:hover { background: #eee; color: #333; }
+        .action-btns .like-btn:hover { color: #ff9800; border-color: #ff9800; background: #fff3e0; }
+        .action-btns .delete-btn:hover { background: #ffebee; color: red; border-color: red; }
+        
+        .message-content { font-size: 1.1em; line-height: 1.5; word-break: break-all; }
+        
+        /* 超链接的专属样式 */
+        .message-content a {
+            color: #1976d2;
+            text-decoration: none;
+            border-bottom: 1px solid #1976d2;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .message-content a:hover {
+            color: #0d47a1;
+            border-bottom-color: #0d47a1;
+        }
+
+        .message-img { margin-top: 10px; max-width: 100%; max-height: 300px; border-radius: 8px; cursor: pointer; }
+        
+        .replies-container {
+            margin-top: 15px;
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px dashed #ccc;
+        }
+        .reply-item {
+            background: rgba(240, 240, 240, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: none;
+        }
+        
+        .image-preview-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;
+        }
+        .image-preview-modal img { max-width: 90%; max-height: 90%; border-radius: 10px; }
+        #status { font-size: 0.9em; color: #999; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -111,82 +177,234 @@
             </div>
 
             <div class="message-box">
-                <textarea id="messageInput" placeholder="在这里写下你想说的话..."></textarea>
-                <div>
-                    <button id="submitBtn" onclick="postMessage()">发表</button>
-                    <span id="status"></span>
+                <div class="reply-hint" id="replyHint">
+                    <span id="replyText">正在回复...</span>
+                    <span style="cursor:pointer; font-weight:bold;" onclick="cancelReply()">✖</span>
+                </div>
+                <textarea id="messageInput" placeholder="在这里写下你想说的话（支持发送 http/https 开头的链接）..."></textarea>
+                <div class="input-group">
+                    <input type="file" id="imageInput" accept="image/*" style="font-size:0.9em; color:#666;" />
+                    <div>
+                        <button id="submitBtn" onclick="postMessage()">发表</button>
+                        <span id="status"></span>
+                    </div>
                 </div>
             </div>
 
             <div class="message-list" id="messageList">
                 <p style="text-align:center; color:#999;">加载留言中...</p>
             </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="loadMoreBtn" onclick="loadMore()" style="display: none; background-color: #e0e0e0; color: #333; width: 100%;">加载更多</button>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <div class="image-preview-modal" id="imagePreview" onclick="this.style.display='none'">
+        <img id="previewImg" src="" alt="预览">
+    </div>
+
+    <!-- 引入本地下载的 supabase.js -->
+    <script src="supabase.js"></script>
     <script>
-         const SUPABASE_URL = 'https://hihtkjadjgtljjmdkouw.supabase.co';
-         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaHRramFkamd0bGpqbWRrb3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2OTAxOTAsImV4cCI6MjExMDI2NjE5MH0.WqBgiY2aDQqmKEknRaKSsPFu0kk27-KmmEBkX_91Ec0'
+        // 你的 Supabase 配置
+        const SUPABASE_URL = 'https://hihtkjadjgtljjmdkouw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaHRramFkamd0bGpqbWRrb3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2OTAxOTAsImV4cCI6MjExMDI2NjE5MH0.WqBgiY2aDQqmKEknRaKSsPFu0kk27-KmmEBkX_91Ec0';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 获取/生成设备ID
+        let deviceId = localStorage.getItem('dorm_device_id');
+        if (!deviceId) {
+            deviceId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+            localStorage.setItem('dorm_device_id', deviceId);
+        }
+
         const messageList = document.getElementById('messageList');
         const messageInput = document.getElementById('messageInput');
+        const imageInput = document.getElementById('imageInput');
         const submitBtn = document.getElementById('submitBtn');
         const statusSpan = document.getElementById('status');
+        const replyHint = document.getElementById('replyHint');
+        const replyText = document.getElementById('replyText');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
 
+        let currentReplyId = null;
+        let currentLimit = 5; // 每次加载的主留言数量
+
+        // 防 XSS 转义
         function escapeHTML(str) {
+            if (!str) return '';
             return str.replace(/[&<>"']/g, function(match) {
-                const map = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                };
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
                 return map[match];
             });
         }
 
-        async function loadMessages() {
-            messageList.innerHTML = '<p style="text-align:center; color:#999;">加载留言中...</p>';
-            const { data, error } = await supabaseClient
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('加载留言失败:', error);
-                messageList.innerHTML = '<p style="text-align:center; color:red;">加载失败，请稍后刷新重试。</p>';
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                messageList.innerHTML = '<p style="text-align:center; color:#999;">暂时还没有留言，快来抢沙发吧！</p>';
-                return;
-            }
-
-            messageList.innerHTML = '';
-            data.forEach(msg => {
-                const item = document.createElement('div');
-                item.className = 'message-item';
-                const date = new Date(msg.created_at).toLocaleString('zh-CN');
-                item.innerHTML = `
-                    <div class="message-info">
-                        <span class="message-author">${escapeHTML(msg.author)}</span>
-                        <span>${date}</span>
-                    </div>
-                    <div class="message-content">${escapeHTML(msg.content)}</div>
-                `;
-                messageList.appendChild(item);
+        // 识别链接并转成 a 标签
+        function linkify(text) {
+            let escapedText = escapeHTML(text);
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return escapedText.replace(urlPattern, function(url) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
         }
 
+        // 时间美化
+        function formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const diffMs = new Date() - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+
+            if (diffSec < 60) return '刚刚';
+            if (diffMin < 60) return `${diffMin}分钟前`;
+            if (diffHour < 24) return `${diffHour}小时前`;
+            if (diffDay < 30) return `${diffDay}天前`;
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // 生成单条留言的 HTML
+        function createMessageHTML(msg, isReply = false) {
+            const isOwner = msg.device_id === deviceId;
+            const timeStr = formatRelativeTime(msg.created_at);
+            const safeContent = linkify(msg.content);
+            
+            let actionHtml = `
+                <button class="like-btn" onclick="likeMessage(${msg.id})">👍 ${msg.likes || 0}</button>
+                <button onclick="prepareReply(${msg.id}, '${escapeHTML(msg.author)}')">💬 回复</button>
+                <button onclick="copyMessage('${encodeURIComponent(msg.content)}')">📋 复制</button>
+            `;
+            if (isOwner) {
+                actionHtml += `<button class="delete-btn" onclick="deleteMessage(${msg.id})">删除</button>`;
+            }
+
+            let imageHtml = '';
+            if (msg.image_url) {
+                imageHtml = `<div><img src="${msg.image_url}" class="message-img" onclick="showPreview('${msg.image_url}')" /></div>`;
+            }
+
+            return `
+                <div class="message-info">
+                    <div>
+                        <span class="message-author">${escapeHTML(msg.author)}</span>
+                        <span style="margin-left: 10px; font-size: 0.85em;">${timeStr}</span>
+                    </div>
+                    <div class="action-btns">${actionHtml}</div>
+                </div>
+                <div class="message-content">${safeContent}</div>
+                ${imageHtml}
+            `;
+        }
+
+        // 加载留言核心逻辑
+        async function loadMessages(isLoadMore = false) {
+            if (!isLoadMore) {
+                messageList.innerHTML = '<p style="text-align:center; color:#999;">加载留言中...</p>';
+                currentLimit = 5;
+            } else {
+                loadMoreBtn.textContent = '加载中...';
+                loadMoreBtn.disabled = true;
+            }
+
+            try {
+                // 1. 查询主留言（限制数量，按时间倒序）
+                const { data: mainMessages, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .is('parent_id', null)
+                    .order('created_at', { ascending: false })
+                    .range(0, currentLimit - 1);
+
+                if (error) throw error;
+
+                // 判断是否显示“加载更多”按钮
+                if (mainMessages.length < currentLimit) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.style.display = 'block';
+                }
+
+                if (mainMessages.length === 0 && !isLoadMore) {
+                    messageList.innerHTML = '<p style="text-align:center; color:#999;">暂时还没有留言，快来抢沙发吧！</p>';
+                    return;
+                }
+
+                // 2. 根据主留言的 ID 查询对应的所有回复
+                let replies = [];
+                if (mainMessages.length > 0) {
+                    const msgIds = mainMessages.map(m => m.id);
+                    const { data: replyData, error: replyError } = await supabaseClient
+                        .from('messages')
+                        .select('*')
+                        .in('parent_id', msgIds)
+                        .order('created_at', { ascending: true });
+                    
+                    if (replyError) throw replyError;
+                    replies = replyData;
+                }
+
+                // 3. 渲染页面
+                messageList.innerHTML = ''; 
+                
+                mainMessages.forEach(msg => {
+                    const item = document.createElement('div');
+                    item.className = 'message-item';
+                    
+                    const childReplies = replies.filter(r => r.parent_id === msg.id);
+                    
+                    let repliesHtml = '';
+                    if (childReplies.length > 0) {
+                        repliesHtml = `<div class="replies-container">`;
+                        childReplies.forEach(reply => {
+                            repliesHtml += `<div class="reply-item">${createMessageHTML(reply, true)}</div>`;
+                        });
+                        repliesHtml += `</div>`;
+                    }
+
+                    item.innerHTML = createMessageHTML(msg) + repliesHtml;
+                    messageList.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('加载失败:', error);
+                messageList.innerHTML = '<p style="text-align:center; color:red;">加载失败，请刷新。</p>';
+            } finally {
+                loadMoreBtn.textContent = '加载更多';
+                loadMoreBtn.disabled = false;
+            }
+        }
+
+        // 点击加载更多
+        function loadMore() {
+            currentLimit += 5;
+            loadMessages(true);
+        }
+
+        // 准备回复
+        function prepareReply(msgId, authorName) {
+            currentReplyId = msgId;
+            replyText.textContent = `正在回复 @${authorName}：`;
+            replyHint.style.display = 'flex';
+            messageInput.focus();
+        }
+
+        // 取消回复
+        function cancelReply() {
+            currentReplyId = null;
+            replyHint.style.display = 'none';
+        }
+
+        // 发表留言/回复
         async function postMessage() {
             const content = messageInput.value.trim();
-            if (content === '') {
-                alert('写点什么再发表吧！');
+            const file = imageInput.files[0];
+
+            if (content === '' && !file) {
+                alert('写点什么或选一张图片再发表吧！');
                 return;
             }
 
@@ -194,26 +412,102 @@
             submitBtn.textContent = '发表中...';
             statusSpan.textContent = '';
 
-            const { error } = await supabaseClient
-                .from('messages')
-                .insert([{ content: content, author: '匿名用户' }]);
+            let imageUrl = null;
 
-            if (error) {
+            try {
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('图片不能超过 2MB 哦！');
+                        throw new Error('图片过大');
+                    }
+                    const filePath = `${Date.now()}-${file.name}`;
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from('message-images')
+                        .upload(filePath, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabaseClient.storage
+                        .from('message-images')
+                        .getPublicUrl(filePath);
+                    imageUrl = urlData.publicUrl;
+                }
+
+                const insertData = { 
+                    content: content || '（图片）', 
+                    author: '匿名用户',
+                    device_id: deviceId,
+                    image_url: imageUrl
+                };
+
+                if (currentReplyId) {
+                    insertData.parent_id = currentReplyId;
+                }
+
+                const { error } = await supabaseClient.from('messages').insert([insertData]);
+                if (error) throw error;
+
+                messageInput.value = '';
+                imageInput.value = '';
+                statusSpan.textContent = '发表成功！';
+                statusSpan.style.color = 'green';
+                cancelReply(); 
+                
+                // 发送成功后，重新从第一页加载
+                await loadMessages(false);
+            } catch (error) {
                 console.error('发表失败:', error);
                 statusSpan.textContent = '发表失败，请重试。';
                 statusSpan.style.color = 'red';
-            } else {
-                messageInput.value = '';
-                statusSpan.textContent = '发表成功！';
-                statusSpan.style.color = 'green';
-                await loadMessages();
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '发表';
             }
-
-            submitBtn.disabled = false;
-            submitBtn.textContent = '发表';
         }
 
-        window.onload = loadMessages;
+        // 点赞
+        async function likeMessage(msgId) {
+            try {
+                const { error } = await supabaseClient.rpc('increment_likes', { msg_id: msgId });
+                if (error) throw error;
+                // 保持当前分页状态刷新
+                await loadMessages(true); 
+            } catch (error) {
+                console.error('点赞失败:', error);
+            }
+        }
+
+        // 删除
+        async function deleteMessage(msgId) {
+            if (!confirm('确定要删除这条留言吗？')) return;
+            try {
+                await supabaseClient.rpc('set_current_device_id', { device_id: deviceId });
+                const { error } = await supabaseClient.from('messages').delete().eq('id', msgId);
+                if (error) throw error;
+                await loadMessages(true);
+            } catch (error) {
+                alert('删除失败：' + error.message);
+            }
+        }
+
+        // 复制
+        async function copyMessage(encodedText) {
+            const text = decodeURIComponent(encodedText);
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('留言已复制到剪贴板！');
+            } catch (err) {
+                alert('复制失败，请手动选中复制。');
+            }
+        }
+
+        // 显示大图
+        function showPreview(url) {
+            document.getElementById('previewImg').src = url;
+            document.getElementById('imagePreview').style.display = 'flex';
+        }
+
+        // 页面加载完毕执行
+        window.onload = () => loadMessages(false);
     </script>
 </body>
 </html>
